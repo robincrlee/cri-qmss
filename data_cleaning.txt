@@ -1,0 +1,12 @@
+Steps
+- Do listwise deletion (this removes rows with any missing value)
+- Filter out 13 countries (Australia, Canada, France, Germany, Ireland, Japan, New Zealand, Norway, Spain, Sweden, Switzerland, the United Kingdom, and the United States.)
+- Combine 1996 (ZA2900) and 2006 (ZA4700) 
+- Recode the ordinal categories into binary
+
+
+Jenn will clean 1996 and Robin will clean 2006.
+
+
+Checks
+- after combining, how many respondents do we have? The study says 31,000 respondents. 
