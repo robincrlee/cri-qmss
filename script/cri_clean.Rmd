@@ -1,0 +1,128 @@
+---
+title: "CRI Replication Initiative"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+stopifnot(require(dplyr))
+stopifnot(require(ggplot2))
+stopifnot(require(readr))
+stopifnot(require(reshape2))
+stopifnot(require(forcats))
+stopifnot(require(readxl))
+```
+Initially when I ran the below code, I attempted to do listwise deletion of the entire 
+dataset, but that returned 0 rows since all rows had at least one N/A value. This leads
+me to believe that the listwise deletion will have to occur later on.
+
+```{r}
+cri_1996 <- read_csv('~/Downloads/ZA2900.csv')
+#list rows of data that have missing values
+cri_1996[!complete.cases(cri_1996),]
+ndata <- na.omit(cri_1996)
+View(ndata)
+         
+```
+
+According to the codebook file:///Users/208456/Downloads/ZA2900_cdb.pdf
+The six different welfare attitudes are
+Jobs (V36)
+Unemployment (V41)
+Income (V42)
+Retirement (V39)
+Housing (V44)
+Healthcare(V38)
+
+After doing listwise deletion, the observations decrease from 35,313 to 30,287. 
+```{r}
+positions <- c('v1', 'v2', 'v3','v36', 'v41', 'v42', 'v39', 'v44', 'v38')
+df <- cri_1996 %>% 
+    select(positions) %>% 
+    rename(jobs='v36') %>% 
+    rename(unemployment='v41') %>% 
+    rename(income='v42') %>% 
+    rename(retirement='v39') %>% 
+    rename(housing='v44') %>% 
+    rename(healthcare='v38') %>% 
+    rename(studyno='v1') %>% 
+    rename(country='v3') %>% 
+    rename(respondentid='v2') %>% 
+    na.omit()
+
+```
+
+Recode to binary. So `probably not` and `definitely no`t are a `0` and `probably should` and `definitely should` are a `0`. Excuse the repetitive code for now
+```{r}
+fct_count(df$jobs)
+coltobinary <- c('jobs', 'unemployment', 'income', 'retirement', 'housing', 'healthcare')
+
+
+df$jobs <- fct_collapse(df$jobs,
+                         "0" = c("Definitely not", "Probably not"),
+                         "1" = c("Definitely should", "Probably should"))
+df$unemployment <- fct_collapse(df$unemployment,
+                         "0" = c("Definitely not", "Probably not"),
+                         "1" = c("Definitely should", "Probably should"))
+df$income <- fct_collapse(df$income,
+                         "0" = c("Definitely not", "Probably not"),
+                         "1" = c("Definitely should", "Probably should"))
+df$retirement <- fct_collapse(df$retirement,
+                         "0" = c("Definitely not", "Probably not"),
+                         "1" = c("Definitely should", "Probably should"))
+df$housing <- fct_collapse(df$housing,
+                         "0" = c("Definitely not", "Probably not"),
+                         "1" = c("Definitely should", "Probably should"))
+df$healthcare <- fct_collapse(df$healthcare,
+                         "0" = c("Definitely not", "Probably not"),
+                         "1" = c("Definitely should", "Probably should"))
+View(df)
+
+
+
+```
+
+The country level independent variables are foreign-born(foreignpct), social welfare expenditures (socx), employment rate(emprate), net migration(netmig).
+The specific countries we would want are Australia, Canada, France, Germany, Ireland, Japan, New Zealand, Norway, Spain, Sweden, Switzerland, the United Kingdom, and the United States.
+```{r}
+indv <- read_excel('~/Downloads/bradyfinnigan2014countrydata.xls')
+View(indv)
+
+#only select independent variables of interest and country code
+#filter out to my year of data = 1996
+findv <- indv %>% 
+    select(1:7, "country") %>% 
+    filter(year==1996)
+```
+The country codes were specific to this codebook (file:///Users/208456/Downloads/ZA2900_cdb.pdf) and not an internationally recognized standard so these had to be manually set in order to join with the other independent variables.
+```{r}
+
+df$country <- df$country %>% 
+    recode('aus' = 'Australia') %>% 
+    recode('cdn' = 'Canada') %>% 
+    recode('f' = 'France') %>% 
+    fct_collapse('Germany' = c('D-E', 'D-W')) %>% 
+    recode('irl' = 'Ireland') %>% 
+    recode('j' = 'Japan') %>% 
+    recode('nz' = 'New Zealand') %>% 
+    recode('n'= 'Norway') %>% 
+    recode('e'= 'Spain') %>% 
+    recode('s' = 'Sweden') %>% 
+    recode('ch' = 'Switzerland') %>% 
+    recode('usa' = "United States") %>% 
+    trimws()
+table(df$country)
+
+```
+
+Only keep the countries we care about
+```{r}
+cwc <-  c('Australia', 'Canada', 'France','Germany', 'Ireland', 'Japan', 'New Zealand', 'Norway', 'Spain', 'Sweden', 'Switzerland', 'United States')
+df <- df[df$country %in% cwc,]
+
+```
+Join original dataframe to other independent variable table
+```{r}
+finaldf <- inner_join(df, findv, by="country")
+write_csv(finaldf, "~/Desktop/cri_df_1996.csv")
+```
+
