@@ -16,11 +16,11 @@ dataset, but that returned 0 rows since all rows had at least one N/A value. Thi
 me to believe that the listwise deletion will have to occur later on.
 
 ```{r}
-cri_1996 <- read_csv('~/Downloads/ZA2900.csv')
+cri_1996 <- read_csv('../raw/ZA2900.csv')
 #list rows of data that have missing values
 cri_1996[!complete.cases(cri_1996),]
 ndata <- na.omit(cri_1996)
-View(ndata)
+nrow(ndata)
          
 ```
 
@@ -49,6 +49,7 @@ df <- cri_1996 %>%
     rename(respondentid='v2') %>% 
     na.omit()
 
+nrow(df)
 ```
 
 Recode to binary. So `probably not` and `definitely no`t are a `0` and `probably should` and `definitely should` are a `0`. Excuse the repetitive code for now
@@ -84,7 +85,7 @@ View(df)
 The country level independent variables are foreign-born(foreignpct), social welfare expenditures (socx), employment rate(emprate), net migration(netmig).
 The specific countries we would want are Australia, Canada, France, Germany, Ireland, Japan, New Zealand, Norway, Spain, Sweden, Switzerland, the United Kingdom, and the United States.
 ```{r}
-indv <- read_excel('~/Downloads/bradyfinnigan2014countrydata.xls')
+indv <- read_csv('../raw/bradyfinnigan2014countrydata.csv')
 View(indv)
 
 #only select independent variables of interest and country code
@@ -93,7 +94,7 @@ findv <- indv %>%
     select(1:7, "country") %>% 
     filter(year==1996)
 ```
-The country codes were specific to this codebook (file:///Users/208456/Downloads/ZA2900_cdb.pdf) and not an internationally recognized standard so these had to be manually set in order to join with the other independent variables.
+The country codes were specific to this codebook (file:///ZA2900_cdb.pdf) and not an internationally recognized standard so these had to be manually set in order to join with the other independent variables.
 ```{r}
 
 df$country <- df$country %>% 
@@ -123,6 +124,6 @@ df <- df[df$country %in% cwc,]
 Join original dataframe to other independent variable table
 ```{r}
 finaldf <- inner_join(df, findv, by="country")
-write_csv(finaldf, "~/Desktop/cri_df_1996.csv")
+write_csv(finaldf, "../processed/cri_df_1996.csv")
 ```
 
