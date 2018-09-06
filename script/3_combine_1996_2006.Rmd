@@ -1,0 +1,28 @@
+---
+title: "3_combine_1996_2006.Rmd"
+author: "Robin Lee"
+date: "9/6/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+stopifnot(require(dplyr))
+stopifnot(require(ggplot2))
+stopifnot(require(readr))
+stopifnot(require(reshape2))
+stopifnot(require(forcats))
+stopifnot(require(readxl))
+```
+
+```{r}
+cri_1996 <- read_csv('../processed/cri_df_1996.csv')
+
+cri_2006 <- read_csv('../processed/cri_df_2006.csv')
+
+cri_combined <- rbind(cri_1996, cri_2006)
+nrow(cri_combined)
+write_csv(cri_combined, "../processed/cri_df_combined.csv")
+
+
+```
+The combined dataset contains 31,926 observations. This fits with the study descriptions. 
